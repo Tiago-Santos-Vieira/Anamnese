@@ -1,0 +1,6 @@
+{
+  "name": "Ficha de Anamnese e Avaliação Inicial – Pilates",
+  "description": "Sistema de Ficha de Anamnese e Avaliação de Pilates para a profissional Tássia com exportação profissional para PDF.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
