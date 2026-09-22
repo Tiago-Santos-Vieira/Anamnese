@@ -7,7 +7,7 @@ import {
   Plus, 
   Trash2, 
   ArrowLeft, 
-  FileDown, 
+  Printer, 
   Eye, 
   CheckCircle2, 
   AlertTriangle, 
@@ -34,8 +34,7 @@ interface Step3Props {
   onUpdateDeclaracao: (fields: Partial<DeclarationData>) => void;
   onPrev: () => void;
   onViewDocument: () => void;
-  onGeneratePdf: () => void;
-  isGeneratingPdf: boolean;
+  onPrintDocument: () => void;
 }
 
 export const Step3PhysicalAssessment: React.FC<Step3Props> = ({
@@ -50,8 +49,7 @@ export const Step3PhysicalAssessment: React.FC<Step3Props> = ({
   onUpdateDeclaracao,
   onPrev,
   onViewDocument,
-  onGeneratePdf,
-  isGeneratingPdf,
+  onPrintDocument,
 }) => {
   const [newMovementName, setNewMovementName] = useState('');
   const [newMovementFoco, setNewMovementFoco] = useState('');
@@ -630,22 +628,12 @@ export const Step3PhysicalAssessment: React.FC<Step3Props> = ({
 
           <button
             type="button"
-            id="btn-final-generate-pdf"
-            onClick={onGeneratePdf}
-            disabled={isGeneratingPdf}
-            className="flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:scale-[0.98] text-white font-bold rounded-xl shadow-md shadow-teal-700/25 transition-all disabled:opacity-50 cursor-pointer w-full sm:w-auto justify-center"
+            id="btn-final-print-pdf"
+            onClick={onPrintDocument}
+            className="flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:scale-[0.98] text-white font-bold rounded-xl shadow-md shadow-teal-700/25 transition-all cursor-pointer w-full sm:w-auto justify-center"
           >
-            {isGeneratingPdf ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Gerando PDF...</span>
-              </>
-            ) : (
-              <>
-                <FileDown className="w-5 h-5" />
-                <span>Gerar e Salvar PDF</span>
-              </>
-            )}
+            <Printer className="w-5 h-5 text-white" />
+            <span>Imprimir / Salvar PDF</span>
           </button>
         </div>
       </div>

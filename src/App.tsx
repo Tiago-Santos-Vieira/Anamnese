@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  FileDown, 
   Printer, 
   Eye, 
   RotateCcw, 
   Sparkles, 
   CheckCircle2, 
   AlertCircle,
-  FileCheck2,
   X
 } from 'lucide-react';
 import { AnamneseFormState } from './types';
@@ -19,7 +17,6 @@ import { Step2HealthAndHabits } from './components/steps/Step2HealthAndHabits';
 import { Step3PhysicalAssessment } from './components/steps/Step3PhysicalAssessment';
 import { PrintableDocument } from './components/PrintableDocument';
 import { Footer } from './components/Footer';
-import { generateAnamnesePdf } from './utils/pdfGenerator';
 
 const STORAGE_KEY = 'tassia_pilates_anamnese_draft_v1';
 
@@ -38,11 +35,7 @@ export default function App() {
 
   const [currentTab, setCurrentTab] = useState<number>(1);
   const [activeView, setActiveView] = useState<'form' | 'preview'>('form');
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'info' | 'error'; text: string } | null>(null);
-
-  // Hidden print container ref
-  const printDocRef = useRef<HTMLDivElement>(null);
 
   // Auto-save to localStorage whenever formData changes
   useEffect(() => {
@@ -141,7 +134,7 @@ export default function App() {
   // Sample data loader
   const handleLoadSample = () => {
     setFormData({ ...SAMPLE_ANAMNESE_DATA });
-    showToast('Ficha de exemplo carregada com sucesso! Você pode inspecionar ou gerar o PDF.', 'success');
+    showToast('Ficha de exemplo carregada com sucesso! Você pode inspecionar ou imprimir/salvar em PDF.', 'success');
   };
 
   // Reset form
@@ -155,35 +148,13 @@ export default function App() {
     }
   };
 
-  // Primary PDF Generation Handler
-  const handleGeneratePdf = async () => {
-    const studentName = formData.aluno.nome?.trim() || 'Aluno';
-    setIsGeneratingPdf(true);
-
-    try {
-      // Find the document element to export
-      const docElement = document.getElementById('printable-anamnese-doc');
-      if (!docElement) {
-        throw new Error('Elemento do documento não foi encontrado na página.');
-      }
-
-      await generateAnamnesePdf(docElement, studentName);
-      showToast(`PDF "Anamnese_${studentName.replace(/\s+/g, '_')}.pdf" gerado com sucesso!`, 'success');
-    } catch (error) {
-      console.error('Falha ao gerar PDF:', error);
-      showToast('Ocorreu uma instabilidade ao gerar o PDF. Tentando modo de impressão nativo...', 'error');
-      // Fallback to window.print()
-      setTimeout(() => {
-        window.print();
-      }, 500);
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
-
-  // Native Print Handler
-  const handleNativePrint = () => {
-    window.print();
+  // Fast, stable, vector-quality Print / Save as PDF handler
+  const handlePrint = () => {
+    setActiveView('preview');
+    // Allow brief time for preview state render before triggering native print
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   return (
@@ -218,9 +189,7 @@ export default function App() {
         currentTab={currentTab}
         totalSteps={3}
         completionPercentage={completionPercentage}
-        isGeneratingPdf={isGeneratingPdf}
-        onGeneratePdf={handleGeneratePdf}
-        onPrintPreview={handleNativePrint}
+        onPrintPreview={handlePrint}
         onLoadSample={handleLoadSample}
         onReset={handleReset}
         activeView={activeView}
@@ -242,7 +211,7 @@ export default function App() {
 
         {/* View: Form Fill Wizard */}
         {activeView === 'form' && (
-          <div>
+          <div className="print:hidden">
             {currentTab === 1 && (
               <Step1PersonalAndGoals
                 aluno={formData.aluno}
@@ -302,8 +271,7 @@ export default function App() {
                   setActiveView('preview');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onGeneratePdf={handleGeneratePdf}
-                isGeneratingPdf={isGeneratingPdf}
+                onPrintDocument={handlePrint}
               />
             )}
           </div>
@@ -317,49 +285,32 @@ export default function App() {
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <Eye className="w-5 h-5 text-teal-600" />
-                  <span>Pré-visualização do Documento PDF</span>
+                  <span>Pré-visualização do Documento</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Este é o formato exato que será exportado para o arquivo PDF da aluna(o) {formData.aluno.nome || ''}.
+                  Visualização formatada para conferência e emissão do documento da aluna(o) {formData.aluno.nome || ''}.
                 </p>
               </div>
 
               <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                 <button
                   type="button"
+                  id="btn-preview-back-form"
                   onClick={() => setActiveView('form')}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all border border-slate-200"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-all border border-slate-200 cursor-pointer"
                 >
                   Voltar ao Formulário
                 </button>
 
                 <button
                   type="button"
-                  onClick={handleNativePrint}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold rounded-xl border border-teal-200 transition-all"
-                  title="Imprimir ou Salvar com as opções nativas do navegador"
+                  id="btn-preview-print-save"
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:scale-[0.98] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm shadow-teal-700/20 transition-all cursor-pointer"
+                  title="Abrir diálogo para Imprimir ou Salvar como PDF"
                 >
-                  <Printer className="w-4 h-4 text-teal-700" />
-                  <span>Imprimir</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleGeneratePdf}
-                  disabled={isGeneratingPdf}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:scale-[0.98] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm shadow-teal-700/20 transition-all disabled:opacity-50 cursor-pointer"
-                >
-                  {isGeneratingPdf ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Gerando PDF...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FileDown className="w-4 h-4" />
-                      <span>Gerar e Salvar PDF</span>
-                    </>
-                  )}
+                  <Printer className="w-4 h-4 text-white" />
+                  <span>Imprimir / Salvar PDF</span>
                 </button>
               </div>
             </div>
@@ -371,38 +322,24 @@ export default function App() {
           </div>
         )}
 
-        {/* Off-screen Container for Document Rendering when in 'form' view so html2pdf can capture full DOM layout and metrics */}
+        {/* Hidden on screen, visible only when printing directly from form mode (e.g. Ctrl+P) */}
         {activeView === 'form' && (
-          <div
-            style={{
-              position: 'fixed',
-              left: '-9999px',
-              top: 0,
-              width: '850px',
-              pointerEvents: 'none',
-              zIndex: -50,
-            }}
-            aria-hidden="true"
-          >
+          <div className="hidden print:block">
             <PrintableDocument data={formData} elementId="printable-anamnese-doc" />
           </div>
         )}
       </main>
 
-      {/* Floating Action Button for PDF generation on mobile / tablet */}
+      {/* Floating Action Button for Print/Save PDF on mobile / tablet */}
       <div className="fixed bottom-5 right-5 z-40 sm:hidden print:hidden">
         <button
           type="button"
-          onClick={handleGeneratePdf}
-          disabled={isGeneratingPdf}
-          className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 active:scale-95 text-white font-bold rounded-full shadow-xl shadow-teal-900/30 text-xs disabled:opacity-50 cursor-pointer border border-white/20"
+          id="btn-mobile-print-save"
+          onClick={handlePrint}
+          className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 active:scale-95 text-white font-bold rounded-full shadow-xl shadow-teal-900/30 text-xs cursor-pointer border border-white/20"
         >
-          {isGeneratingPdf ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            <FileDown className="w-4 h-4" />
-          )}
-          <span>Salvar PDF</span>
+          <Printer className="w-4 h-4 text-white" />
+          <span>Imprimir / Salvar PDF</span>
         </button>
       </div>
 

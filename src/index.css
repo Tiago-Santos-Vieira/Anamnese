@@ -9,18 +9,20 @@
 
 @media print {
   @page {
-    margin: 10mm 10mm 10mm 10mm;
+    margin: 10mm;
     size: A4 portrait;
   }
 
   body {
     background: white !important;
-    color: #1e293b !important;
+    color: #0f172a !important;
     padding: 0 !important;
     margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .print\:hidden {
+  header, footer, nav, .print\:hidden {
     display: none !important;
   }
 
@@ -38,4 +40,3 @@
     page-break-inside: avoid !important;
   }
 }
-

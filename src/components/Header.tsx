@@ -14,8 +14,6 @@ interface HeaderProps {
   currentTab: number;
   totalSteps: number;
   completionPercentage: number;
-  isGeneratingPdf: boolean;
-  onGeneratePdf: () => void;
   onPrintPreview: () => void;
   onLoadSample: () => void;
   onReset: () => void;
@@ -25,8 +23,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   completionPercentage,
-  isGeneratingPdf,
-  onGeneratePdf,
   onPrintPreview,
   onLoadSample,
   onReset,
@@ -135,37 +131,16 @@ export const Header: React.FC<HeaderProps> = ({
               <RotateCcw className="w-4 h-4" />
             </button>
 
-            {/* Native Print Button */}
+            {/* Action: Imprimir / Salvar PDF */}
             <button
               type="button"
-              id="btn-native-print"
+              id="btn-header-print-save"
               onClick={onPrintPreview}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-teal-800 bg-teal-50 hover:bg-teal-100 active:bg-teal-200 rounded-lg transition-all border border-teal-200"
-              title="Imprimir ou Salvar como PDF pelo navegador"
+              className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:scale-[0.98] shadow-sm shadow-teal-700/20 rounded-xl transition-all cursor-pointer"
+              title="Abrir diálogo de impressão e salvar como PDF"
             >
-              <Printer className="w-3.5 h-3.5 text-teal-700" />
-              <span className="hidden md:inline">Imprimir / Salvar</span>
-            </button>
-
-            {/* Main Primary Action: Gerar e Salvar PDF */}
-            <button
-              type="button"
-              id="btn-header-generate-pdf"
-              onClick={onGeneratePdf}
-              disabled={isGeneratingPdf}
-              className="flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:scale-[0.98] shadow-sm shadow-teal-700/20 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {isGeneratingPdf ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Gerando PDF...</span>
-                </>
-              ) : (
-                <>
-                  <FileDown className="w-4 h-4" />
-                  <span>Gerar e Salvar PDF</span>
-                </>
-              )}
+              <Printer className="w-4 h-4 text-white" />
+              <span>Imprimir / Salvar PDF</span>
             </button>
           </div>
         </div>
