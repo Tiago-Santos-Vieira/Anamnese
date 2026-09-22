@@ -9,8 +9,13 @@
 
 @media print {
   @page {
-    margin: 10mm;
+    margin: 8mm 10mm;
     size: A4 portrait;
+  }
+
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 
   body {
@@ -33,9 +38,10 @@
     margin: 0 !important;
     max-width: 100% !important;
     width: 100% !important;
+    min-height: auto !important;
   }
 
-  .break-inside-avoid {
+  .break-inside-avoid, section, tr {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }

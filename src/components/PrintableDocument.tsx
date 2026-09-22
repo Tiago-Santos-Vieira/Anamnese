@@ -67,21 +67,33 @@ export const PrintableDocument: React.FC<PrintableDocumentProps> = ({
     }
   };
 
+  const formatDateBr = (dateStr?: string) => {
+    if (!dateStr) return '';
+    if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
+    return dateStr;
+  };
+
   return (
     <div
       id={elementId}
       className="bg-white text-slate-800 p-6 sm:p-10 max-w-4xl mx-auto shadow-md print:shadow-none print:p-4 rounded-xl print:rounded-none font-sans leading-relaxed border border-slate-200 print:border-none"
-      style={{ minHeight: '1100px' }}
     >
       {/* Document Header */}
       <header className="border-b-2 border-teal-600 pb-5 mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <FileCheck2 className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-2xl bg-teal-800 text-white flex items-center justify-center shrink-0 shadow-xs border border-teal-700/50">
+              <span className="font-serif text-2xl font-bold tracking-tight text-white select-none">
+                T
+              </span>
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                 Studio & Prescrição Clínica
               </span>
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-0.5">
@@ -99,7 +111,7 @@ export const PrintableDocument: React.FC<PrintableDocumentProps> = ({
               <strong className="text-pink-700">@tassia.movimento</strong>
             </p>
             <p className="text-[10px] text-slate-600 font-semibold mt-0.5">
-              Data: {declaracao.dataAvaliacao || new Date().toLocaleDateString('pt-BR')}
+              Data: {formatDateBr(declaracao.dataAvaliacao) || new Date().toLocaleDateString('pt-BR')}
             </p>
           </div>
         </div>
@@ -121,7 +133,7 @@ export const PrintableDocument: React.FC<PrintableDocumentProps> = ({
           <div>
             <span className="text-slate-600 font-medium block text-[10px]">Data de Nasc. / Idade</span>
             <span className="font-semibold text-slate-900">
-              {aluno.dataNascimento ? new Date(aluno.dataNascimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+              {aluno.dataNascimento ? formatDateBr(aluno.dataNascimento) : '—'}
               {aluno.idade ? ` (${aluno.idade} anos)` : ''}
             </span>
           </div>

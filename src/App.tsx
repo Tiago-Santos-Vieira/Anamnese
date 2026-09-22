@@ -80,7 +80,18 @@ export default function App() {
 
   // Handlers for partial updates
   const updateAluno = (fields: Partial<AnamneseFormState['aluno']>) => {
-    setFormData((prev) => ({ ...prev, aluno: { ...prev.aluno, ...fields } }));
+    setFormData((prev) => {
+      const nextAluno = { ...prev.aluno, ...fields };
+      let nextDeclaracao = prev.declaracao;
+      if (
+        fields.nome !== undefined &&
+        (!prev.declaracao.assinaturaAlunoNome ||
+          prev.declaracao.assinaturaAlunoNome === prev.aluno.nome)
+      ) {
+        nextDeclaracao = { ...prev.declaracao, assinaturaAlunoNome: fields.nome };
+      }
+      return { ...prev, aluno: nextAluno, declaracao: nextDeclaracao };
+    });
   };
 
   const updateObjetivos = (fields: Partial<AnamneseFormState['objetivos']>) => {

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="tBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="tAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a7f3d0"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Smooth rounded squircle background -->
+  <rect width="64" height="64" rx="16" fill="url(#tBg)"/>
+  
+  <!-- Subtle inner glow border -->
+  <rect x="1" y="1" width="62" height="62" rx="15" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  
+  <!-- Stylized Elegant "T" Monogram for Tássia -->
+  <g fill="url(#tAccent)">
+    <!-- Top Horizontal Bar with delicate tapered terminals -->
+    <path d="M 14 19 C 14 17.5 15.5 16 18 16 L 46 16 C 48.5 16 50 17.5 50 19 C 50 20.2 49 21.2 47 21.2 L 35 21.2 L 35 46 C 35 48.5 33.5 50 31.5 50 C 29.5 50 28 48.5 28 46 L 28 21.2 L 17 21.2 C 15 21.2 14 20.2 14 19 Z"/>
+  </g>
+  
+  <!-- Tiny subtle sparkle dot representing precision movement -->
+  <circle cx="48" cy="18" r="2.2" fill="#5eead4"/>
+</svg>
