@@ -54,8 +54,8 @@ export interface MedicationData {
   interferemDetalhes: string;
 }
 
-export interface PainDiscomfort {
-  senteDor: 'sim' | 'nao' | '';
+export interface PainItem {
+  id: string;
   localDor: string;
   lado: 'direito' | 'esquerdo' | 'bilateral' | 'central' | 'nao_se_aplica';
   tipoDor: string; // Pontada, queimação, pontual, irradiada, peso
@@ -63,6 +63,18 @@ export interface PainDiscomfort {
   escalaDorExercicio: number; // 0 a 10
   fatoresMelhora: string;
   fatoresPiora: string;
+}
+
+export interface PainDiscomfort {
+  senteDor: 'sim' | 'nao' | '';
+  listaDores?: PainItem[];
+  localDor?: string;
+  lado?: 'direito' | 'esquerdo' | 'bilateral' | 'central' | 'nao_se_aplica';
+  tipoDor?: string; // Pontada, queimação, pontual, irradiada, peso
+  escalaDorRepouso?: number; // 0 a 10
+  escalaDorExercicio?: number; // 0 a 10
+  fatoresMelhora?: string;
+  fatoresPiora?: string;
 }
 
 export interface EffortSymptoms {

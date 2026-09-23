@@ -10,12 +10,15 @@ import {
   ArrowLeft, 
   ArrowRight,
   Flame,
-  Check
+  Check,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { 
   HealthHistory, 
   MedicationData, 
   PainDiscomfort, 
+  PainItem,
   EffortSymptoms, 
   ElderlySpecific, 
   RoutineHabits 
@@ -100,6 +103,106 @@ export const Step2HealthAndHabits: React.FC<Step2Props> = ({
     if (val <= 6) return `${val} - Dor incômoda e limitante`;
     if (val <= 8) return `${val} - Dor intensa e aguda`;
     return `${val} - Dor insuportável / extrema`;
+  };
+
+  // Resolve array of pain items safely
+  const painItems: PainItem[] = (dor.listaDores && dor.listaDores.length > 0)
+    ? dor.listaDores
+    : [
+        {
+          id: 'dor-1',
+          localDor: dor.localDor && dor.localDor !== 'Sem queixa de dor atual' ? dor.localDor : '',
+          lado: dor.lado || 'nao_se_aplica',
+          tipoDor: dor.tipoDor || '',
+          escalaDorRepouso: dor.escalaDorRepouso ?? 0,
+          escalaDorExercicio: dor.escalaDorExercicio ?? 0,
+          fatoresMelhora: dor.fatoresMelhora || '',
+          fatoresPiora: dor.fatoresPiora || '',
+        },
+      ];
+
+  const handleUpdatePainItem = (index: number, updatedFields: Partial<PainItem>) => {
+    const nextList = painItems.map((item, idx) => {
+      if (idx === index) {
+        return { ...item, ...updatedFields };
+      }
+      return item;
+    });
+
+    const first = nextList[0] || {
+      localDor: '',
+      lado: 'nao_se_aplica',
+      tipoDor: '',
+      escalaDorRepouso: 0,
+      escalaDorExercicio: 0,
+      fatoresMelhora: '',
+      fatoresPiora: '',
+    };
+
+    onUpdateDor({
+      listaDores: nextList,
+      localDor: first.localDor,
+      lado: first.lado,
+      tipoDor: first.tipoDor,
+      escalaDorRepouso: first.escalaDorRepouso,
+      escalaDorExercicio: first.escalaDorExercicio,
+      fatoresMelhora: first.fatoresMelhora,
+      fatoresPiora: first.fatoresPiora,
+    });
+  };
+
+  const handleAddPainItem = () => {
+    const newItem: PainItem = {
+      id: `dor-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      localDor: '',
+      lado: 'nao_se_aplica',
+      tipoDor: '',
+      escalaDorRepouso: 0,
+      escalaDorExercicio: 0,
+      fatoresMelhora: '',
+      fatoresPiora: '',
+    };
+    const nextList = [...painItems, newItem];
+    const first = nextList[0];
+
+    onUpdateDor({
+      listaDores: nextList,
+      localDor: first.localDor,
+      lado: first.lado,
+      tipoDor: first.tipoDor,
+      escalaDorRepouso: first.escalaDorRepouso,
+      escalaDorExercicio: first.escalaDorExercicio,
+      fatoresMelhora: first.fatoresMelhora,
+      fatoresPiora: first.fatoresPiora,
+    });
+  };
+
+  const handleRemovePainItem = (indexToRemove: number) => {
+    if (painItems.length <= 1) {
+      handleUpdatePainItem(0, {
+        localDor: '',
+        lado: 'nao_se_aplica',
+        tipoDor: '',
+        escalaDorRepouso: 0,
+        escalaDorExercicio: 0,
+        fatoresMelhora: '',
+        fatoresPiora: '',
+      });
+      return;
+    }
+    const nextList = painItems.filter((_, idx) => idx !== indexToRemove);
+    const first = nextList[0];
+
+    onUpdateDor({
+      listaDores: nextList,
+      localDor: first.localDor,
+      lado: first.lado,
+      tipoDor: first.tipoDor,
+      escalaDorRepouso: first.escalaDorRepouso,
+      escalaDorExercicio: first.escalaDorExercicio,
+      fatoresMelhora: first.fatoresMelhora,
+      fatoresPiora: first.fatoresPiora,
+    });
   };
 
   return (
@@ -413,148 +516,220 @@ export const Step2HealthAndHabits: React.FC<Step2Props> = ({
         </div>
 
         {dor.senteDor === 'sim' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="sm:col-span-2">
-                <label htmlFor="local-dor" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Localização da Dor *
-                </label>
-                <input
-                  type="text"
-                  id="local-dor"
-                  value={dor.localDor}
-                  onChange={(e) => onUpdateDor({ localDor: e.target.value })}
-                  placeholder="Ex: Região lombar, cervical, joelho direito, ombro esquerdo"
-                  className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900 font-medium"
-                />
-              </div>
+          <div className="space-y-5">
+            {painItems.map((painItem, index) => (
+              <div
+                key={painItem.id || index}
+                className="p-4 sm:p-5 bg-slate-50/90 rounded-2xl border border-slate-200 shadow-2xs space-y-4 relative transition-all"
+              >
+                {/* Header do Card deste ponto de dor */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-teal-700 text-white font-bold text-xs flex items-center justify-center shadow-2xs">
+                      {index + 1}
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-800">
+                      Ponto de Dor #{index + 1}
+                      {painItem.localDor && (
+                        <span className="text-teal-800 font-semibold ml-1.5 text-xs">
+                          — {painItem.localDor}
+                        </span>
+                      )}
+                    </h3>
+                  </div>
 
-              <div>
-                <label htmlFor="lado-dor" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Lado Acometido
-                </label>
-                <select
-                  id="lado-dor"
-                  value={dor.lado}
-                  onChange={(e) => onUpdateDor({ lado: e.target.value as any })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900"
-                >
-                  <option value="bilateral">Bilateral (ambos os lados)</option>
-                  <option value="direito">Lado Direito</option>
-                  <option value="esquerdo">Lado Esquerdo</option>
-                  <option value="central">Centralizado</option>
-                  <option value="nao_se_aplica">Não se aplica</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="tipo-dor" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Tipo de Sensação
-                </label>
-                <input
-                  type="text"
-                  id="tipo-dor"
-                  value={dor.tipoDor}
-                  onChange={(e) => onUpdateDor({ tipoDor: e.target.value })}
-                  placeholder="Ex: Pontada, queimação, peso, latejante, pontual"
-                  className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="fatores-melhora" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                  O que costuma aliviar a dor?
-                </label>
-                <input
-                  type="text"
-                  id="fatores-melhora"
-                  value={dor.fatoresMelhora}
-                  onChange={(e) => onUpdateDor({ fatoresMelhora: e.target.value })}
-                  placeholder="Ex: Repouso, alongamento, compressa quente"
-                  className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="fatores-piora" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                  O que piora a dor?
-                </label>
-                <input
-                  type="text"
-                  id="fatores-piora"
-                  value={dor.fatoresPiora}
-                  onChange={(e) => onUpdateDor({ fatoresPiora: e.target.value })}
-                  placeholder="Ex: Ficar sentado muito tempo, carregar peso"
-                  className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900"
-                />
-              </div>
-            </div>
-
-            {/* Sliders da Escala de Dor EVA (0 a 10) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              {/* Dor em Repouso */}
-              <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Escala de Dor em Repouso
-                  </span>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getPainColor(
-                      dor.escalaDorRepouso
-                    )}`}
-                  >
-                    {getPainDescriptor(dor.escalaDorRepouso)}
-                  </span>
+                  {painItems.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePainItem(index)}
+                      className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-rose-200"
+                      title="Excluir este ponto de dor"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remover esta dor</span>
+                    </button>
+                  )}
                 </div>
-                <input
-                  type="range"
-                  id="slider-dor-repouso"
-                  min="0"
-                  max="10"
-                  step="1"
-                  value={dor.escalaDorRepouso}
-                  onChange={(e) => onUpdateDor({ escalaDorRepouso: Number(e.target.value) })}
-                  className="w-full accent-teal-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-slate-600 font-semibold mt-1">
-                  <span>0 (Sem dor)</span>
-                  <span>5 (Moderada)</span>
-                  <span>10 (Insuportável)</span>
-                </div>
-              </div>
 
-              {/* Dor no Exercício */}
-              <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Escala de Dor no Exercício / Movimento
-                  </span>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getPainColor(
-                      dor.escalaDorExercicio
-                    )}`}
-                  >
-                    {getPainDescriptor(dor.escalaDorExercicio)}
-                  </span>
+                {/* Campos do ponto de dor */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor={`local-dor-${index}`}
+                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                    >
+                      Localização da Dor *
+                    </label>
+                    <input
+                      type="text"
+                      id={`local-dor-${index}`}
+                      value={painItem.localDor}
+                      onChange={(e) => handleUpdatePainItem(index, { localDor: e.target.value })}
+                      placeholder="Ex: Região lombar, cervical, joelho direito, ombro esquerdo"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor={`lado-dor-${index}`}
+                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                    >
+                      Lado Acometido
+                    </label>
+                    <select
+                      id={`lado-dor-${index}`}
+                      value={painItem.lado}
+                      onChange={(e) => handleUpdatePainItem(index, { lado: e.target.value as any })}
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900"
+                    >
+                      <option value="bilateral">Bilateral (ambos os lados)</option>
+                      <option value="direito">Lado Direito</option>
+                      <option value="esquerdo">Lado Esquerdo</option>
+                      <option value="central">Centralizado</option>
+                      <option value="nao_se_aplica">Não se aplica</option>
+                    </select>
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  id="slider-dor-exercicio"
-                  min="0"
-                  max="10"
-                  step="1"
-                  value={dor.escalaDorExercicio}
-                  onChange={(e) => onUpdateDor({ escalaDorExercicio: Number(e.target.value) })}
-                  className="w-full accent-amber-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-slate-600 font-semibold mt-1">
-                  <span>0 (Sem dor)</span>
-                  <span>5 (Moderada)</span>
-                  <span>10 (Insuportável)</span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label
+                      htmlFor={`tipo-dor-${index}`}
+                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                    >
+                      Tipo de Sensação
+                    </label>
+                    <input
+                      type="text"
+                      id={`tipo-dor-${index}`}
+                      value={painItem.tipoDor}
+                      onChange={(e) => handleUpdatePainItem(index, { tipoDor: e.target.value })}
+                      placeholder="Ex: Pontada, queimação, peso, latejante, pontual"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor={`fatores-melhora-${index}`}
+                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                    >
+                      O que costuma aliviar a dor?
+                    </label>
+                    <input
+                      type="text"
+                      id={`fatores-melhora-${index}`}
+                      value={painItem.fatoresMelhora}
+                      onChange={(e) => handleUpdatePainItem(index, { fatoresMelhora: e.target.value })}
+                      placeholder="Ex: Repouso, alongamento, calor local"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor={`fatores-piora-${index}`}
+                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                    >
+                      O que piora a dor?
+                    </label>
+                    <input
+                      type="text"
+                      id={`fatores-piora-${index}`}
+                      value={painItem.fatoresPiora}
+                      onChange={(e) => handleUpdatePainItem(index, { fatoresPiora: e.target.value })}
+                      placeholder="Ex: Ficar muito tempo sentado, carregar peso"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 text-slate-900"
+                    />
+                  </div>
+                </div>
+
+                {/* Sliders da Escala de Dor EVA (0 a 10) para este ponto */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                  {/* Dor em Repouso */}
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Escala de Dor em Repouso
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-bold border ${getPainColor(
+                          painItem.escalaDorRepouso
+                        )}`}
+                      >
+                        {getPainDescriptor(painItem.escalaDorRepouso)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      id={`slider-dor-repouso-${index}`}
+                      min="0"
+                      max="10"
+                      step="1"
+                      value={painItem.escalaDorRepouso}
+                      onChange={(e) =>
+                        handleUpdatePainItem(index, { escalaDorRepouso: Number(e.target.value) })
+                      }
+                      className="w-full accent-teal-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500 font-semibold mt-1">
+                      <span>0 (Sem dor)</span>
+                      <span>5 (Moderada)</span>
+                      <span>10 (Insuportável)</span>
+                    </div>
+                  </div>
+
+                  {/* Dor no Exercício */}
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Escala de Dor no Exercício / Movimento
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-bold border ${getPainColor(
+                          painItem.escalaDorExercicio
+                        )}`}
+                      >
+                        {getPainDescriptor(painItem.escalaDorExercicio)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      id={`slider-dor-exercicio-${index}`}
+                      min="0"
+                      max="10"
+                      step="1"
+                      value={painItem.escalaDorExercicio}
+                      onChange={(e) =>
+                        handleUpdatePainItem(index, { escalaDorExercicio: Number(e.target.value) })
+                      }
+                      className="w-full accent-amber-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500 font-semibold mt-1">
+                      <span>0 (Sem dor)</span>
+                      <span>5 (Moderada)</span>
+                      <span>10 (Insuportável)</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+            ))}
+
+            {/* Botão para Adicionar Mais Uma Caixinha de Dor */}
+            <div className="pt-1">
+              <button
+                type="button"
+                id="btn-add-another-pain"
+                onClick={handleAddPainItem}
+                className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-gradient-to-r from-teal-50 to-emerald-50 hover:from-teal-100/90 hover:to-emerald-100/90 active:scale-[0.99] text-teal-800 font-semibold text-xs sm:text-sm rounded-xl border-2 border-dashed border-teal-300 hover:border-teal-500 transition-all cursor-pointer shadow-2xs group"
+              >
+                <Plus className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform" />
+                <span>+ Adicionar Outro Ponto de Dor ou Desconforto</span>
+              </button>
+              <p className="text-[11px] text-slate-500 text-center mt-2">
+                Tem dores em mais de uma região (ex: lombar, joelho e ombro)? Clique acima para cadastrar cada uma separadamente com sua própria escala EVA.
+              </p>
             </div>
           </div>
         )}

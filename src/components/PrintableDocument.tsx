@@ -54,6 +54,19 @@ export const PrintableDocument: React.FC<PrintableDocumentProps> = ({
     esforco.doresNoPeito && 'Dor / aperto no peito',
   ].filter(Boolean) as string[];
 
+  const allPains = (dor.listaDores && dor.listaDores.length > 0)
+    ? dor.listaDores.filter(p => p.localDor || (p.escalaDorRepouso ?? 0) > 0 || (p.escalaDorExercicio ?? 0) > 0)
+    : (dor.localDor ? [{
+        id: 'dor-1',
+        localDor: dor.localDor,
+        lado: dor.lado || 'nao_se_aplica',
+        tipoDor: dor.tipoDor || '',
+        escalaDorRepouso: dor.escalaDorRepouso ?? 0,
+        escalaDorExercicio: dor.escalaDorExercicio ?? 0,
+        fatoresMelhora: dor.fatoresMelhora || '',
+        fatoresPiora: dor.fatoresPiora || '',
+      }] : []);
+
   const getStatusBadge = (status: MovementStatus) => {
     switch (status) {
       case 'realiza':
@@ -331,34 +344,66 @@ export const PrintableDocument: React.FC<PrintableDocumentProps> = ({
 
           {/* Quadro de Dor & Escala Visual Analógica */}
           <div className="bg-slate-50/70 p-3.5 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 block mb-1">
-              Quadro de Dor e Desconfortos (EVA)
-            </span>
-            {dor.senteDor === 'sim' ? (
-              <div className="space-y-1">
-                <p className="font-bold text-slate-900">
-                  Local: <span className="text-rose-900">{dor.localDor}</span> ({dor.lado})
-                </p>
-                {dor.tipoDor && (
-                  <p className="text-slate-700">Tipo: {dor.tipoDor}</p>
-                )}
-                <div className="flex items-center gap-2 pt-1 font-semibold">
-                  <span className="bg-slate-200 px-2 py-0.5 rounded text-[11px]">
-                    Repouso: <strong>{dor.escalaDorRepouso}/10</strong>
-                  </span>
-                  <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-[11px] border border-amber-300">
-                    Exercício: <strong>{dor.escalaDorExercicio}/10</strong>
-                  </span>
-                </div>
-                {dor.fatoresMelhora && (
-                  <p className="text-[10px] text-slate-600 mt-1">Alívio: {dor.fatoresMelhora}</p>
-                )}
-                {dor.fatoresPiora && (
-                  <p className="text-[10px] text-slate-600">Agravamento: {dor.fatoresPiora}</p>
-                )}
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">
+                Quadro de Dor e Desconfortos (EVA)
+              </span>
+              {dor.senteDor === 'sim' && allPains.length > 1 && (
+                <span className="text-[10px] font-bold text-teal-800 bg-teal-100/80 px-1.5 py-0.5 rounded">
+                  {allPains.length} regiões
+                </span>
+              )}
+            </div>
+
+            {dor.senteDor === 'sim' && allPains.length > 0 ? (
+              <div className="space-y-2">
+                {allPains.map((p, idx) => (
+                  <div
+                    key={p.id || idx}
+                    className={`text-xs ${idx > 0 ? 'pt-2 border-t border-slate-200' : ''}`}
+                  >
+                    <div className="flex items-start justify-between gap-1">
+                      <p className="font-bold text-slate-900 leading-tight">
+                        {allPains.length > 1 && (
+                          <span className="text-teal-800 mr-1 font-extrabold">#{idx + 1}</span>
+                        )}
+                        <span className="text-rose-900">{p.localDor || 'Local não especificado'}</span>
+                      </p>
+                      {p.lado && p.lado !== 'nao_se_aplica' && (
+                        <span className="text-[10px] text-slate-500 font-medium capitalize shrink-0">
+                          ({p.lado})
+                        </span>
+                      )}
+                    </div>
+
+                    {p.tipoDor && (
+                      <p className="text-slate-700 text-[11px] mt-0.5">
+                        Sensação: {p.tipoDor}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-2 pt-1 font-semibold">
+                      <span className="bg-slate-200 px-1.5 py-0.5 rounded text-[10px]">
+                        Repouso: <strong>{p.escalaDorRepouso}/10</strong>
+                      </span>
+                      <span className="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded text-[10px] border border-amber-300">
+                        Exercício: <strong>{p.escalaDorExercicio}/10</strong>
+                      </span>
+                    </div>
+
+                    {(p.fatoresMelhora || p.fatoresPiora) && (
+                      <div className="text-[10px] text-slate-600 mt-1 space-y-0.5">
+                        {p.fatoresMelhora && <p>Alívio: {p.fatoresMelhora}</p>}
+                        {p.fatoresPiora && <p>Agravamento: {p.fatoresPiora}</p>}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
+            ) : dor.senteDor === 'sim' ? (
+              <p className="text-slate-600 italic text-xs">Dor relatada, mas locais não especificados.</p>
             ) : (
-              <p className="text-emerald-800 font-semibold">Sem queixas de dor ou desconforto atual.</p>
+              <p className="text-emerald-800 font-semibold text-xs">Sem queixas de dor ou desconforto atual.</p>
             )}
           </div>
         </div>
